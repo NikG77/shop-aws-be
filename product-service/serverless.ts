@@ -1,6 +1,10 @@
 import type { AWS } from '@serverless/typescript';
 import getProductsList from '@functions/getProductsList';
 import getProductById from '@functions/getProductById';
+import addProduct from '@functions/add-product';
+import deleteProductById from '@functions/delete-product-by-id';
+
+import * as Config from './src/config';
 
 import * as ProductItemSchema from '@schemas/ProductItem.json';
 import * as ProductItemsArraySchema from '@schemas/ProductItemsArray.json';
@@ -44,11 +48,16 @@ const serverlessConfiguration: AWS = {
         },
         environment: {
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+            PG_HOST: Config.DATABASE.HOST,
+            PG_PORT: String(Config.DATABASE.PORT),
+            PG_DATABASE: Config.DATABASE.NAME,
+            PG_USERNAME: Config.DATABASE.USER,
+            PG_PASSWORD: Config.DATABASE.PASS,
         },
         lambdaHashingVersion: '20201221',
     },
     // import the function via paths
-    functions: { getProductsList, getProductById },
+    functions: { getProductsList, getProductById, addProduct, deleteProductById },
 };
 
 module.exports = serverlessConfiguration;

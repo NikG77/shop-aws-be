@@ -1,24 +1,25 @@
-import "source-map-support/register";
+import 'source-map-support/register';
+import { APIGatewayProxyHandler } from 'aws-lambda';
 
-import { APIGatewayProxyHandler } from "aws-lambda";
-import { ErrorResponse, formatJSONResponse } from "@libs/apiGateway";
-import { middyfy } from "@libs/lambda";
+import { ErrorResponse, formatJSONResponse, logRequestData } from '@libs/apiGateway';
+import { middyfy } from '@libs/lambda';
+import { getProductsListData } from '@libs/data-access';
 
-import { PRODUCT_BY_ID_MAP } from "src/products-list";
-import { HttpCode } from "src/constants";
+import { HttpCode } from 'src/constants';
+import { IProduct } from 'src/products-list';
 
-export const getProductsList: APIGatewayProxyHandler = async () => {
+export const getProductsList: APIGatewayProxyHandler = async (event, context) => {
+    context.callbackWaitsForEmptyEventLoop = false;
+    logRequestData(event, 'get-all-products');
+
     try {
-        const products = Array.from(PRODUCT_BY_ID_MAP.values());
+        const products: IProduct[] = await getProductsListData();
 
         return formatJSONResponse({
             products,
         });
     } catch (error) {
-        return new ErrorResponse(
-            `Failed to get products list`,
-            HttpCode.InternalServerError
-        );
+        return new ErrorResponse(`Failed to get products list: ${error}`, HttpCode.InternalServerError);
     }
 };
 
