@@ -1,17 +1,25 @@
 import "source-map-support/register";
 
-import type { ValidatedEventAPIGatewayProxyEvent } from "@libs/apiGateway";
-import { formatJSONResponse } from "@libs/apiGateway";
+import { APIGatewayProxyHandler } from "aws-lambda";
+import { ErrorResponse, formatJSONResponse } from "@libs/apiGateway";
 import { middyfy } from "@libs/lambda";
 
-import schema from "./schema";
-import { findProducts } from "../../db";
+import { PRODUCT_BY_ID_MAP } from "src/products-list";
+import { HttpCode } from "src/constants";
 
-const getProductsList: ValidatedEventAPIGatewayProxyEvent<typeof schema> =
-  async () => {
-    return formatJSONResponse({
-      data: await findProducts(),
-    });
-  };
+export const getProductsList: APIGatewayProxyHandler = async () => {
+    try {
+        const products = Array.from(PRODUCT_BY_ID_MAP.values());
+
+        return formatJSONResponse({
+            products,
+        });
+    } catch (error) {
+        return new ErrorResponse(
+            `Failed to get products list`,
+            HttpCode.InternalServerError
+        );
+    }
+};
 
 export const main = middyfy(getProductsList);
