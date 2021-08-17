@@ -5,7 +5,7 @@
     "main": "serverless.ts",
     "scripts": {
         "test": "jest --config ./jest.config.ts -u",
-        "deploy": "sls deploy",
+        "deploy": "Request<T>",
         "remove": "sls remove --region eu-west-1",
         "build": "sls package",
         "docs:update": "sls openapi generate"
