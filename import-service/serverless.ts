@@ -4,13 +4,13 @@ import importProductsFile from "@functions/importProductsFile";
 import importFileParser from "@functions/importFileParser";
 import {
   BUCKET_ARN,
-  SERVICE_NAME,
   SQS_QUEUE_LOCAL_NAME,
   SQS_QUEUE_NAME,
-} from "./src/constants";
+  // BUCKET,
+} from "src/constants";
 
 const serverlessConfiguration: AWS = {
-  service: SERVICE_NAME,
+  service: 'import-service',
   frameworkVersion: "2",
   custom: {
     webpack: {
@@ -29,7 +29,7 @@ const serverlessConfiguration: AWS = {
     },
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
-      CREATE_PRODUCT_SQS_URL: {
+      SQS_URL: {
         Ref: SQS_QUEUE_LOCAL_NAME,
       },
     },
@@ -63,7 +63,43 @@ const serverlessConfiguration: AWS = {
   },
 
   resources: {
-    Resources: {      
+    Resources: {
+      // ImportServiceBucket: {
+      //   Type: "AWS::S3::Bucket",
+      //   Properties: {
+      //     BucketName: BUCKET,
+      //     AccessControl: "PublicRead",
+      //     CorsConfiguration: {
+      //       CorsRules: [
+      //         {
+      //           AllowedMethods: ["GET", "PUT"],
+      //           AllowedHeaders: ["*"],
+      //           AllowedOrigins: ["*"],
+      //         },
+      //       ],
+      //     },
+      //   },
+      // },
+      // ImportServiceBucketPolicy: {
+      //   Type: "AWS::S3::BucketPolicy",
+      //   Properties: {
+      //     Bucket: {
+      //       Ref: "ImportServiceBucket",
+      //     },
+      //     PolicyDocument: {
+      //       Statement: [
+      //         {
+      //           Sid: "AllowPublicRead",
+      //           Effect: "Allow",
+      //           Principal: { AWS: "*" },
+      //           Action: "s3:GetObject",
+      //           Resource: `arn:aws:s3:::${BUCKET}/*`,
+      //         },
+      //       ],
+      //     },
+      //   },
+      // },
+
       [SQS_QUEUE_LOCAL_NAME]: {
         Type: "AWS::SQS::Queue",
         Properties: {

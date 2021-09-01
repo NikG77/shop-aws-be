@@ -1,37 +1,31 @@
-import "source-map-support/register";
+import 'source-map-support/register';
+import { APIGatewayProxyHandler } from 'aws-lambda';
 
-import { APIGatewayProxyEvent } from "aws-lambda";
-import * as AWS from "aws-sdk";
-import { S3 } from "aws-sdk/clients/browser_default";
-import { formatJSONResponse, logRequest } from "@libs/apiGateway";
-import { middyfy } from "@libs/lambda";
-import { APIGatewayProxyEventMock } from "@libs/types";
+import { ErrorResponse, formatJSONResponse, logRequestData } from '@libs/apiGateway';
+import { middyfy } from '@libs/lambda';
+
+import { s3 } from 'src/S3Service';
+import { HttpCode } from 'src/constants';
 import { logger } from "@libs/logger";
-import { BUCKET_NAME } from "../../constants";
 
-const CATALOG_NAME = "uploaded";
+export const importProductsFile: APIGatewayProxyHandler = async event => {
+    logRequestData(event, 'importProductsFile');
 
-export const importProductsFile = async (
-  event: APIGatewayProxyEvent | APIGatewayProxyEventMock
-) => {
-  logRequest(event);
+    const fileName = event.queryStringParameters?.name;
 
-  try {
-    const s3 = new AWS.S3({ signatureVersion: "v4" });
-    const params: S3.Types.PutObjectRequest = {
-      Bucket: BUCKET_NAME,
-      Key: `${CATALOG_NAME}/${event.queryStringParameters?.name}`,
-      ContentType: "text/csv",
-    };
-    const s3PutObjectUrl = await s3.getSignedUrlPromise("putObject", params);
-    logger.info(`Signed URL is ${JSON.stringify(s3PutObjectUrl)}`);
+    try {
+        if (fileName) {
+            const signedUrl = await s3.getSignedUrlPromise(fileName);
 
-    return formatJSONResponse(s3PutObjectUrl);
-  } catch (err) {
-    logger.error(`Error while getting signed URL ${JSON.stringify(err)}`);
-    
-    return formatJSONResponse(err.message, 500);
-  }
+            logger.info(`Signed url: ${signedUrl}`);
+
+            return formatJSONResponse({ signedUrl });
+        }
+
+        return new ErrorResponse(`File name must be present: ${fileName}`, HttpCode.BadRequest);
+    } catch (error) {
+        return new ErrorResponse(`Failed To Import Products File: ${error}`);
+    }
 };
 
 export const main = middyfy(importProductsFile);

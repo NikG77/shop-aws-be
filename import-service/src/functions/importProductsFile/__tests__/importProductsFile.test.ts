@@ -1,31 +1,49 @@
-import * as AWS from "aws-sdk-mock";
-import { importProductsFile } from "../handler";
-import { APIGatewayProxyEventMock } from "@libs/types";
+import * as AWSMock from 'aws-sdk-mock';
+import * as mockContext from 'aws-lambda-mock-context';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
-beforeAll(() => {
-  AWS.mock("S3", "getSignedUrlPromise", (_, __, callback) => {
-    callback(null, null);
-  });
+import { BUCKET, CsvFileFolder, HttpCode } from 'src/constants';
+import { importProductsFile } from '../handler';
+import { s3 } from 'src/S3Service';
+
+jest.mock('src/S3Service');
+
+async function getSignedUrlPromiseMock(fileName: string) {
+    return `https://import-service-products.com/${CsvFileFolder.Uploaded}/${fileName}?bucket=${BUCKET}`;
+}
+
+beforeEach(() => {
+    s3.getSignedUrlPromise = jest.fn(getSignedUrlPromiseMock);
 });
 
-afterAll(() => {
-  AWS.restore("S3");
+afterAll(done => {
+    done();
+    AWSMock.restore('S3');
+    ctx.succeed('success');
 });
 
-describe("Import products file", () => {
-  it("should return 200", async () => {
-    const event: APIGatewayProxyEventMock = {
-      queryStringParameters: { name: "Test" },
-    };
+const cb = () => null;
+const ctx = mockContext.default({ timeout: 1 });
 
-    const response = await importProductsFile(event);
+describe('importProductsFile', () => {
+    it('should return 400 if no fileName is provided', async () => {
+        const event: Pick<APIGatewayProxyEvent, 'queryStringParameters'> = {
+            queryStringParameters: {},
+        };
+        const response = await importProductsFile(event as APIGatewayProxyEvent, ctx, cb);
+        expect(response!.statusCode).toBe(HttpCode.BadRequest);
+    });
+    it('should create proper signed url', async () => {
+        const fileName = 'test.csv';
+        const expectedSignedUrl = `https://import-service-products.com/${CsvFileFolder.Uploaded}/${fileName}?bucket=${BUCKET}`;
+        const event: Pick<APIGatewayProxyEvent, 'queryStringParameters'> = {
+            queryStringParameters: { name: fileName },
+        };
 
-    expect(response.statusCode).toBe(200);
-  });
+        const response = await importProductsFile(event as APIGatewayProxyEvent, ctx, cb);
+        const resultSignedUrl = JSON.parse(response!.body).signedUrl;
 
-  it("should return 500 when the file name is not provided", async () => {
-    const response = await importProductsFile({});
-
-    expect(response.statusCode).toBe(500);
-  });
+        expect(resultSignedUrl).toBe(expectedSignedUrl);
+        expect(response!.statusCode).toBe(HttpCode.Ok);
+    });
 });

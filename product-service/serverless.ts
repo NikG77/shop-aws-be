@@ -55,7 +55,7 @@ const serverlessConfiguration: AWS = {
             PG_DATABASE: Config.DATABASE.NAME,
             PG_USERNAME: Config.DATABASE.USER,
             PG_PASSWORD: Config.DATABASE.PASS,
-            CREATE_PRODUCT_SNS_ARN: {
+            SNS_ARN: {
                 Ref: SNS_TOPIC_LOCAL_NAME,
             },
         },

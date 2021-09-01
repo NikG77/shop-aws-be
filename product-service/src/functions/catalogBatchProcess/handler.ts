@@ -1,51 +1,36 @@
 import 'source-map-support/register';
+import { SQSEvent } from 'aws-lambda';
 
+import { formatJSONResponse } from '@libs/apiGateway';
 import { middyfy } from '@libs/lambda';
-import { logger } from '@libs/logger';
-import { SNS } from 'aws-sdk/clients/browser_default';
-import { ErrorResponse, logRequestData } from '@libs/apiGateway';
 import { addProductData } from '@libs/data-access';
-import { HttpCode } from 'src/constants';
 
-export const catalogBatchProcess = async (event, context) => {
+import { IProduct } from 'src/products-list';
+import { Publisher } from 'src/publisher';
+import { logger } from '@libs/logger';
+
+export const catalogBatchProcess = async (event: SQSEvent, context) => {
     context.callbackWaitsForEmptyEventLoop = false;
-    logRequestData(event, 'catalog-batch-process');
+    logger.info(`SQS Event: ${JSON.stringify(event)}`);
 
-    const sns = new SNS();
+    const products: Omit<IProduct, 'id'>[] = event.Records.map(({ body }) => JSON.parse(body));
+    const insertedProducts: IProduct[] = [];
 
-    event.Records.map(async ({ body }) => {
+    for (const product of products) {
         try {
-            const { product } = JSON.parse(body);
-            logger.info(`Product: ${product}`);
+            const insertedProduct = await addProductData(product);
+            if (insertedProduct != null) {
+                insertedProducts.push(insertedProduct!);
+                logger.info(`product: ${JSON.stringify(insertedProduct)} has been uploaded`);
 
-            if (product != null) {
-                const insertedProduct = await addProductData(product);
-
-                logger.info(`InsertedProduct: ${insertedProduct}`);
-
-                const message = `Product ${insertedProduct?.title} is added to database`;
-                logger.info(message);
-
-                const result = await sns.publish({
-                    Subject: 'New product',
-                    Message: message,
-                    TopicArn: process.env.CREATE_PRODUCT_SNS_ARN,
-                    MessageAttributes: {
-                        isExpensive: {
-                            DataType: 'String',
-                            StringValue: `${Number(insertedProduct?.price) > 100}`,
-                        },
-                    },
-                });
-                logger.info('Email is sent');
-
-                return result;
+                await Publisher.publishProduct(insertedProduct!);
             }
-            return new ErrorResponse(`Failed to insert product: ${product}`, HttpCode.InternalServerError);
-        } catch (err) {
-            logger.error(`Error while adding product to database: ${JSON.stringify(err)}`);
+        } catch (error) {
+            logger.error(`Error: ${error}`);
         }
-    });
+    }
+
+    return formatJSONResponse({ products: insertedProducts });
 };
 
 export const main = middyfy(catalogBatchProcess);
