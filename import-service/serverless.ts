@@ -6,11 +6,10 @@ import {
   BUCKET_ARN,
   SQS_QUEUE_LOCAL_NAME,
   SQS_QUEUE_NAME,
-  // BUCKET,
 } from "src/constants";
 
 const serverlessConfiguration: AWS = {
-  service: 'import-service',
+  service: "import-service",
   frameworkVersion: "2",
   useDotenv: true,
   configValidationMode: "off",
@@ -66,7 +65,6 @@ const serverlessConfiguration: AWS = {
 
   resources: {
     Resources: {
-
       [SQS_QUEUE_LOCAL_NAME]: {
         Type: "AWS::SQS::Queue",
         Properties: {
