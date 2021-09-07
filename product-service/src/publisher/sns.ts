@@ -22,7 +22,7 @@ class SNSPublisher implements ISNSPublisher {
                     Message: `product: ${JSON.stringify(product)}`,
                     TopicArn: SNS_ARN,
                     MessageAttributes: {
-                        stock: {
+                        isExpensive: {
                             DataType: 'String',
                             StringValue: `${product.price > 100}`,
                         },
