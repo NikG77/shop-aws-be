@@ -12,6 +12,8 @@ import {
 const serverlessConfiguration: AWS = {
   service: 'import-service',
   frameworkVersion: "2",
+  useDotenv: true,
+  configValidationMode: "off",
   custom: {
     webpack: {
       webpackConfig: "./webpack.config.js",
@@ -64,41 +66,6 @@ const serverlessConfiguration: AWS = {
 
   resources: {
     Resources: {
-      // ImportServiceBucket: {
-      //   Type: "AWS::S3::Bucket",
-      //   Properties: {
-      //     BucketName: BUCKET,
-      //     AccessControl: "PublicRead",
-      //     CorsConfiguration: {
-      //       CorsRules: [
-      //         {
-      //           AllowedMethods: ["GET", "PUT"],
-      //           AllowedHeaders: ["*"],
-      //           AllowedOrigins: ["*"],
-      //         },
-      //       ],
-      //     },
-      //   },
-      // },
-      // ImportServiceBucketPolicy: {
-      //   Type: "AWS::S3::BucketPolicy",
-      //   Properties: {
-      //     Bucket: {
-      //       Ref: "ImportServiceBucket",
-      //     },
-      //     PolicyDocument: {
-      //       Statement: [
-      //         {
-      //           Sid: "AllowPublicRead",
-      //           Effect: "Allow",
-      //           Principal: { AWS: "*" },
-      //           Action: "s3:GetObject",
-      //           Resource: `arn:aws:s3:::${BUCKET}/*`,
-      //         },
-      //       ],
-      //     },
-      //   },
-      // },
 
       [SQS_QUEUE_LOCAL_NAME]: {
         Type: "AWS::SQS::Queue",

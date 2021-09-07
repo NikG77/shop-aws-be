@@ -11,7 +11,7 @@ describe("Unit test for getProductById handler", function () {
     it("should find proper product by id", async () => {
         const event: Pick<APIGatewayProxyEvent, "pathParameters"> = {
             pathParameters: {
-                productId: "1",
+                productId: "227445fc-39af-4bb0-95ca-8ca08c683221",
             },
         };
         const result = (await getProductById(
@@ -30,7 +30,7 @@ describe("Unit test for getProductById handler", function () {
     it("should return not found if there is no such product", async () => {
         const event: Pick<APIGatewayProxyEvent, "pathParameters"> = {
             pathParameters: {
-                productId: "some-id",
+                productId: "027445fc-39af-4bb0-95ca-8ca08c683221",
             },
         };
         const result = (await getProductById(

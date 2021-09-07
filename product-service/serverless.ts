@@ -14,6 +14,7 @@ import { SNS_TOPIC_LOCAL_NAME, SNS_TOPIC_NAME } from './src/constants';
 const serverlessConfiguration: AWS = {
     service: 'product-service',
     frameworkVersion: '2',
+    useDotenv: true,
     custom: {
         webpack: {
             webpackConfig: './webpack.config.js',
