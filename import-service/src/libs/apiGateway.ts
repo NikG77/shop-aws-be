@@ -24,8 +24,6 @@ interface IResponse {
 
 const DEFAULT_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS, PUT",
   "Access-Control-Allow-Credentials": true,
 };
 
@@ -40,11 +38,9 @@ export const formatJSONResponse = (
 };
 
 export class ErrorResponse {
-  public statusCode: HttpCode;
-  public body: string;
-  public headers: {
-    [k: string]: string | boolean;
-  };
+  public statusCode: IResponse["statusCode"];
+  public body: IResponse["body"];
+  public headers: IResponse["headers"];
 
   constructor(
     message = "Something went wrong",

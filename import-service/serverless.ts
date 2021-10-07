@@ -6,11 +6,10 @@ import {
   BUCKET_ARN,
   SQS_QUEUE_LOCAL_NAME,
   SQS_QUEUE_NAME,
-  // BUCKET,
 } from "src/constants";
 
 const serverlessConfiguration: AWS = {
-  service: 'import-service',
+  service: "import-service",
   frameworkVersion: "2",
   useDotenv: true,
   configValidationMode: "off",
@@ -66,11 +65,23 @@ const serverlessConfiguration: AWS = {
 
   resources: {
     Resources: {
-
       [SQS_QUEUE_LOCAL_NAME]: {
         Type: "AWS::SQS::Queue",
         Properties: {
           QueueName: SQS_QUEUE_NAME,
+        },
+      },
+      GatewayResponseDefault4XX: {
+        Type: "AWS::ApiGateway::GatewayResponse",
+        Properties: {
+          ResponseParameters: {
+            "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+            "gatewayresponse.header.Access-Control-Allow-Headers": "'*'",
+          },
+          ResponseType: "DEFAULT_4XX",
+          RestApiId: {
+            Ref: "ApiGatewayRestApi",
+          },
         },
       },
     },
